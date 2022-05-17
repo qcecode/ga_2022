@@ -3,12 +3,125 @@
  */
 package ga_2022;
 
+import java.util.ArrayList;
+
 public class App {
-    public String getGreeting() {
-        return "Hello World!";
+    
+    public static void main(String[] args) throws Exception {
+        Faltung f = new Faltung();
+        App app = new App();
+        System.out.println("fitness: " + app.fitness(f));
+    }
+    public double fitness(Faltung f){
+        final int length = f.faltung.length();
+        int x = length;
+        int y = length;
+        double overlap = 0;
+        int bonds = 0;
+        double fitness = 0;
+        ArrayList<Knoten> matrix[][] = new ArrayList[length*2][length*2];
+        char lastDirketion = 'u';
+        
+        for (int j = 0; j <= length; j++){
+            boolean hydrophob = false;
+            if(f.hydrophob.charAt(j) == '1'){
+                hydrophob = true;
+            }
+            Knoten k = new Knoten(j, hydrophob);
+            if( matrix[x][y] == null){
+                matrix[x][y] = new ArrayList<Knoten>();
+            }
+            matrix[x][y].add(k);
+
+            if(j < length){
+                char nextDirection = getDirection(lastDirketion, f.faltung.charAt(j));
+                if( nextDirection == 'r'){x = x+1;}
+                else if( nextDirection == 'l'){x = x-1;}
+                else if( nextDirection == 'u'){y = y+1;}
+                else if( nextDirection == 'd'){y = y-1;}
+                lastDirketion = nextDirection;
+            }
+        }
+
+        //count contacts 
+        for(int j = 0; j <= length*2-1; j++){
+            for(int k = 0; k <= length*2-1; k++){
+                if(matrix[j][k] != null){
+                    overlap = overlap + matrix[j][k].size()-1;
+                    for(int n = 0 ; n < matrix[j][k].size(); n++){
+                        if (matrix[j][k].get(n).hydrophob == true){
+                            int number = matrix[j][k].get(n).knotenNummer ;
+                            if(matrix[j][k+1] != null){
+                                for(int i = 0 ; i < matrix[j][k+1].size(); i++){              
+                                    if(matrix[j][k+1].get(i).hydrophob == true
+                                    && matrix[j][k+1].get(i).knotenNummer != number+1 
+                                    && matrix[j][k+1].get(i).knotenNummer != number-1  ){
+                                        bonds = bonds + 1;
+                                        System.out.println("bond: " +matrix[j][k].get(i).knotenNummer +number);
+                                    }
+                                }
+                            }
+                            if(matrix[j][k-1] != null){
+                                for(int i = 0 ; i < matrix[j][k-1].size(); i++){
+                                    if(matrix[j][k-1].get(i).hydrophob == true
+                                    && matrix[j][k-1].get(i).knotenNummer != number +1 
+                                    && matrix[j][k-1].get(i).knotenNummer != number -1  ){
+                                        bonds = bonds + 1;
+                                        System.out.println("bond: " +matrix[j][k-1].get(i).knotenNummer +number);
+                                    }
+                                }
+                            }
+                            if(matrix[j+1][k] != null){
+                                for(int i = 0 ; i < matrix[j+1][k].size(); i++){
+                                    if(matrix[j+1][k].get(i).hydrophob == true
+                                    && matrix[j+1][k].get(i).knotenNummer != number +1 
+                                    && matrix[j+1][k].get(i).knotenNummer != number -1  ){
+                                        bonds = bonds + 1;
+                                        System.out.println("bond: " +matrix[j+1][k].get(i).knotenNummer +number);
+                                    }
+                                }
+                            }
+                            if(matrix[j-1][k] != null){
+                                    for(int i = 0 ; i < matrix[j-1][k].size(); i++){
+                                    if(matrix[j-1][k].get(i).hydrophob == true
+                                    && matrix[j-1][k].get(i).knotenNummer != number +1 
+                                    && matrix[j-1][k].get(i).knotenNummer != number -1  ){
+                                        bonds = bonds + 1;
+                                        System.out.println("bond: " +matrix[j-1][k].get(i).knotenNummer +number);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        bonds = bonds/2; // to stop double numbers
+        System.out.println("overlaps: "+ overlap);
+        System.out.println("bonds: " +bonds);
+        fitness = bonds/(overlap+1);
+        return fitness ;
     }
 
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+    private char getDirection(char lastDirketion, char heading){
+        char nextDirection = lastDirketion;
+
+        if(heading == 'r'){
+            if( lastDirketion == 'r'){nextDirection ='d';}
+            else if( lastDirketion == 'l'){nextDirection ='u';}
+            else if( lastDirketion == 'u'){nextDirection ='r';}
+            else if( lastDirketion == 'd'){nextDirection ='l';}
+        } 
+        else if(heading == 'l'){
+            if( lastDirketion == 'r'){nextDirection ='u';}
+            else if( lastDirketion == 'l'){nextDirection ='d';}
+            else if( lastDirketion == 'u'){nextDirection ='l';}
+            else if( lastDirketion == 'd'){nextDirection ='r';}
+        }   
+        return nextDirection;
+    }
+
+    public void generateImage(Faltung f){
+        
     }
 }
