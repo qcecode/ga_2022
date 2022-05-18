@@ -6,11 +6,16 @@ package ga_2022;
 import java.util.ArrayList;
 
 public class App {
-    
+        public static String faltungString = "gllrrgr"; //1
+        //public static String faltungString = "gllrlll";
+        public static String hydrophobString = "10110001";
+
     public static void main(String[] args) throws Exception {
-        Faltung f = new Faltung();
+        Faltung f = new Faltung(faltungString, hydrophobString);
         App app = new App();
-        System.out.println("fitness: " + app.fitness(f));
+        f.setFitness(app.fitness(f));
+        GraphicOutput Ga = new GraphicOutput();
+        Ga.generateImage(f);
     }
     public double fitness(Faltung f){
         final int length = f.faltung.length();
@@ -47,7 +52,14 @@ public class App {
         for(int j = 0; j <= length*2-1; j++){
             for(int k = 0; k <= length*2-1; k++){
                 if(matrix[j][k] != null){
-                    overlap = overlap + matrix[j][k].size()-1;
+                    if( matrix[j][k].size() >= 2 ){
+                        overlap += matrix[j][k].size() -1;
+                        Overlap newOverlap = new Overlap();
+                        for(int l = 0; l < matrix[j][k].size(); l++){
+                            newOverlap.addKnoten(matrix[j][k].get(l));
+                        }
+                        f.addOverlapp(newOverlap);
+                    }
                     for(int n = 0 ; n < matrix[j][k].size(); n++){
                         if (matrix[j][k].get(n).hydrophob == true){
                             int number = matrix[j][k].get(n).knotenNummer ;
@@ -57,7 +69,8 @@ public class App {
                                     && matrix[j][k+1].get(i).knotenNummer != number+1 
                                     && matrix[j][k+1].get(i).knotenNummer != number-1  ){
                                         bonds = bonds + 1;
-                                        System.out.println("bond: " +matrix[j][k].get(i).knotenNummer +number);
+                                        //System.out.println("bond: " +matrix[j][k+1].get(i).knotenNummer +number);
+                                        f.addBond( matrix[j][k].get(n),  matrix[j][k+1].get(i));
                                     }
                                 }
                             }
@@ -67,7 +80,8 @@ public class App {
                                     && matrix[j][k-1].get(i).knotenNummer != number +1 
                                     && matrix[j][k-1].get(i).knotenNummer != number -1  ){
                                         bonds = bonds + 1;
-                                        System.out.println("bond: " +matrix[j][k-1].get(i).knotenNummer +number);
+                                        //System.out.println("bond: " +matrix[j][k-1].get(i).knotenNummer +number);
+                                        f.addBond( matrix[j][k].get(n),  matrix[j][k-1].get(i));
                                     }
                                 }
                             }
@@ -77,7 +91,8 @@ public class App {
                                     && matrix[j+1][k].get(i).knotenNummer != number +1 
                                     && matrix[j+1][k].get(i).knotenNummer != number -1  ){
                                         bonds = bonds + 1;
-                                        System.out.println("bond: " +matrix[j+1][k].get(i).knotenNummer +number);
+                                        //System.out.println("bond: " +matrix[j+1][k].get(i).knotenNummer +number);
+                                        f.addBond( matrix[j][k].get(n),  matrix[j+1][k].get(i));
                                     }
                                 }
                             }
@@ -87,7 +102,8 @@ public class App {
                                     && matrix[j-1][k].get(i).knotenNummer != number +1 
                                     && matrix[j-1][k].get(i).knotenNummer != number -1  ){
                                         bonds = bonds + 1;
-                                        System.out.println("bond: " +matrix[j-1][k].get(i).knotenNummer +number);
+                                        //System.out.println("bond: " +matrix[j-1][k].get(i).knotenNummer +number);
+                                        f.addBond( matrix[j][k].get(n),  matrix[j-1][k].get(i));
                                     }
                                 }
                             }
