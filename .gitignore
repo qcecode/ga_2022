@@ -30,3 +30,6 @@ build
 
 # Ignore VSCODE settings
 .vscode
+
+# Ignore Generated Files
+generated
