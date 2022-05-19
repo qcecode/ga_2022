@@ -20,16 +20,12 @@ public class GraphicOutput {
     //public static String faltungString = "ggggggg";
     public static String faltungString = "gllrlll";
     public static String hydrophobString = "10110001";
-    public static Faltung faltung;
-    public static void main(String[] args) {
-        faltung = new Faltung(faltungString,hydrophobString);
-    }
 
     public void generateImage(Faltung faltung){
     int height = 1080;
     int width = 1920;
-    int cellSize = 100;
-    int boxDistance = 150;
+    int cellSize = 74;
+    int boxDistance = cellSize+cellSize/2;
 
     int xPos = width/2;
     int yPos = height/2;
@@ -40,7 +36,7 @@ public class GraphicOutput {
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     Graphics2D g2 = image.createGraphics();
 
-    Font font = new Font("Serif", Font.PLAIN, 40);
+    Font font = new Font("Serif", Font.PLAIN, 30);
     g2.setFont(font);
     FontMetrics metrics = g2.getFontMetrics();
     int ascent = metrics.getAscent();
@@ -59,7 +55,7 @@ public class GraphicOutput {
                 String numberString = "";
                 for(int j = 0; j < knotenList.size(); j++){
                     if(knotenList.get(j).hydrophob == false){
-                        g2.setColor(Color.WHITE);
+                        g2.setColor(Color.black);
                         g2.drawRect(x1Pos, y1Pos, cellSize, cellSize);
                     } else {
                         g2.setColor(Color.BLACK);

@@ -2,8 +2,6 @@ package ga_2022;
 
 import java.util.LinkedHashSet;
 
-import com.google.common.base.Objects;
-
 public class Overlap {
     private LinkedHashSet<Knoten> knotenSet;
 

@@ -3,141 +3,168 @@
  */
 package ga_2022;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
+import com.opencsv.CSVWriter;
 
 public class App {
-        public static String faltungString = "gllrrgr"; //1
-        //public static String faltungString = "gllrlll";
-        public static String hydrophobString = "10110001";
+        //public static String faltungString = "gllrrgr"; //1
+        public static String faltungString = "gllrlll";
+        //public static String hydrophobString = "10110001"; // 8
+        //public static String hydrophobString = "101100010110"; //12
+        public static String hydrophobString = "1011011101011011"; //16
+        public static String filePath = "src/main/resources/data.csv";
+        public static String newFilePath = "C:\\Users\\henri\\Documents\\ga\\ga_2022\\app\\src\\main\\resources\\data.csv";
 
+        public static int faltungSize = 16; // Anzahl der Knoten 
+        public static int generationSize = 10000;
+        public static int maxGenerationNumber = 20;
+
+        private ArrayList<Generation> generationList;
+        private int genCnt = 0;
     public static void main(String[] args) throws Exception {
-        Faltung f = new Faltung(faltungString, hydrophobString);
         App app = new App();
-        f.setFitness(app.fitness(f));
+        GraphicOutput ga = new GraphicOutput();
+        app.newCsvFile();
+        app.generationList = new ArrayList<>();
+        app.generateStartingGeneration();
+        for(int i = 1; i < maxGenerationNumber; i++){
+            System.out.println("avg Fitness " + app.generationList.get(app.genCnt).getAvgFitness());
+            app.nextGeneration();
+        }
+        ga.generateImage( app.generationList.get(app.generationList.size()-1).getFaltungList().get(0));
+
+
+        
+        //app.punktMutation(f);
+        //app.onePointCrossover(f, f1);
+        /*f.fitness();
         GraphicOutput Ga = new GraphicOutput();
-        Ga.generateImage(f);
+        Ga.generateImage(f);*/
     }
-    public double fitness(Faltung f){
-        final int length = f.faltung.length();
-        int x = length;
-        int y = length;
-        double overlap = 0;
-        int bonds = 0;
-        double fitness = 0;
-        ArrayList<Knoten> matrix[][] = new ArrayList[length*2][length*2];
-        char lastDirketion = 'u';
-        
-        for (int j = 0; j <= length; j++){
-            boolean hydrophob = false;
-            if(f.hydrophob.charAt(j) == '1'){
-                hydrophob = true;
-            }
-            Knoten k = new Knoten(j, hydrophob);
-            if( matrix[x][y] == null){
-                matrix[x][y] = new ArrayList<Knoten>();
-            }
-            matrix[x][y].add(k);
 
-            if(j < length){
-                char nextDirection = getDirection(lastDirketion, f.faltung.charAt(j));
-                if( nextDirection == 'r'){x = x+1;}
-                else if( nextDirection == 'l'){x = x-1;}
-                else if( nextDirection == 'u'){y = y+1;}
-                else if( nextDirection == 'd'){y = y-1;}
-                lastDirketion = nextDirection;
-            }
+    public void punktMutation(Faltung f){
+        int changePos = randomInBetween(1, f.size()-1); 
+        int newCarNumber = randomInBetween(0, 2);
+        String newChar;
+        if(newCarNumber == 0){ 
+            newChar = "l";
+        } else if ( newCarNumber == 1){
+            newChar = "g";
+        } else {
+            newChar = "r";
         }
 
-        //count contacts 
-        for(int j = 0; j <= length*2-1; j++){
-            for(int k = 0; k <= length*2-1; k++){
-                if(matrix[j][k] != null){
-                    if( matrix[j][k].size() >= 2 ){
-                        overlap += matrix[j][k].size() -1;
-                        Overlap newOverlap = new Overlap();
-                        for(int l = 0; l < matrix[j][k].size(); l++){
-                            newOverlap.addKnoten(matrix[j][k].get(l));
-                        }
-                        f.addOverlapp(newOverlap);
-                    }
-                    for(int n = 0 ; n < matrix[j][k].size(); n++){
-                        if (matrix[j][k].get(n).hydrophob == true){
-                            int number = matrix[j][k].get(n).knotenNummer ;
-                            if(matrix[j][k+1] != null){
-                                for(int i = 0 ; i < matrix[j][k+1].size(); i++){              
-                                    if(matrix[j][k+1].get(i).hydrophob == true
-                                    && matrix[j][k+1].get(i).knotenNummer != number+1 
-                                    && matrix[j][k+1].get(i).knotenNummer != number-1  ){
-                                        bonds = bonds + 1;
-                                        //System.out.println("bond: " +matrix[j][k+1].get(i).knotenNummer +number);
-                                        f.addBond( matrix[j][k].get(n),  matrix[j][k+1].get(i));
-                                    }
-                                }
-                            }
-                            if(matrix[j][k-1] != null){
-                                for(int i = 0 ; i < matrix[j][k-1].size(); i++){
-                                    if(matrix[j][k-1].get(i).hydrophob == true
-                                    && matrix[j][k-1].get(i).knotenNummer != number +1 
-                                    && matrix[j][k-1].get(i).knotenNummer != number -1  ){
-                                        bonds = bonds + 1;
-                                        //System.out.println("bond: " +matrix[j][k-1].get(i).knotenNummer +number);
-                                        f.addBond( matrix[j][k].get(n),  matrix[j][k-1].get(i));
-                                    }
-                                }
-                            }
-                            if(matrix[j+1][k] != null){
-                                for(int i = 0 ; i < matrix[j+1][k].size(); i++){
-                                    if(matrix[j+1][k].get(i).hydrophob == true
-                                    && matrix[j+1][k].get(i).knotenNummer != number +1 
-                                    && matrix[j+1][k].get(i).knotenNummer != number -1  ){
-                                        bonds = bonds + 1;
-                                        //System.out.println("bond: " +matrix[j+1][k].get(i).knotenNummer +number);
-                                        f.addBond( matrix[j][k].get(n),  matrix[j+1][k].get(i));
-                                    }
-                                }
-                            }
-                            if(matrix[j-1][k] != null){
-                                    for(int i = 0 ; i < matrix[j-1][k].size(); i++){
-                                    if(matrix[j-1][k].get(i).hydrophob == true
-                                    && matrix[j-1][k].get(i).knotenNummer != number +1 
-                                    && matrix[j-1][k].get(i).knotenNummer != number -1  ){
-                                        bonds = bonds + 1;
-                                        //System.out.println("bond: " +matrix[j-1][k].get(i).knotenNummer +number);
-                                        f.addBond( matrix[j][k].get(n),  matrix[j-1][k].get(i));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        f.faltung = f.faltung.substring(0,changePos-1) + newChar +f.faltung.substring(changePos);
+    }
+
+    public Faltung onePointCrossover(Faltung f0, Faltung f1){
+        int changePos = randomInBetween(0, f0.size());
+        String newFaltungString = f0.faltung.substring(0,changePos) + f1.faltung.substring(changePos);
+        Faltung newFaltung = new Faltung(newFaltungString, f0.hydrophob);
+        //System.out.println("changePos: " + changePos);
+        //System.out.println(f0.faltung + " " + f1.faltung + " " + newFaltung.faltung);
+        return newFaltung;
+    }
+
+    public void nextGeneration(){
+        ArrayList<Faltung> newFaltungList = new ArrayList<>();
+        for(int i = 0; i < generationSize; i++){
+            newFaltungList.add(new Faltung(fitnessProportionateSelection(generationList.get(genCnt).getFaltungList())));
         }
-        bonds = bonds/2; // to stop double numbers
-        System.out.println("overlaps: "+ overlap);
-        System.out.println("bonds: " +bonds);
-        fitness = bonds/(overlap+1);
-        return fitness ;
+        generationList.add(new Generation(newFaltungList));
+        genCnt++;
     }
+    public Faltung fitnessProportionateSelection(ArrayList<Faltung> population){
 
-    private char getDirection(char lastDirketion, char heading){
-        char nextDirection = lastDirketion;
+        Random rng = new Random();
+        Faltung selected;
 
-        if(heading == 'r'){
-            if( lastDirketion == 'r'){nextDirection ='d';}
-            else if( lastDirketion == 'l'){nextDirection ='u';}
-            else if( lastDirketion == 'u'){nextDirection ='r';}
-            else if( lastDirketion == 'd'){nextDirection ='l';}
-        } 
-        else if(heading == 'l'){
-            if( lastDirketion == 'r'){nextDirection ='u';}
-            else if( lastDirketion == 'l'){nextDirection ='d';}
-            else if( lastDirketion == 'u'){nextDirection ='l';}
-            else if( lastDirketion == 'd'){nextDirection ='r';}
-        }   
-        return nextDirection;
-    }
-
-    public void generateImage(Faltung f){
+        double[] cumulativeFitnesses = new double[population.size()];
         
+        cumulativeFitnesses[0] = population.get(0).getFitness();
+        for (int i = 1; i < population.size(); i++)
+        {
+            double fitness = population.get(i).getFitness();
+            cumulativeFitnesses[i] = cumulativeFitnesses[i - 1] + fitness;
+        }
+
+        double randomFitness = rng.nextDouble() * cumulativeFitnesses[cumulativeFitnesses.length - 1];
+        int index = Arrays.binarySearch(cumulativeFitnesses, randomFitness);
+        if (index < 0)
+        {
+            // Convert negative insertion point to array index.
+            index = Math.abs(index + 1);
+            //System.out.println("index: " + index);
+        }
+        //System.out.println("randomFitness: " + randomFitness);
+        //System.out.println("cumulativeFitnesses " + cumulativeFitnesses[population.size()-1]);
+        selected = population.get(index);
+        return selected;
+    }
+
+    public int randomInBetween(int min, int max){
+		Random random = new Random();
+
+		int value = random.nextInt((max - min) + 1) + min;
+		return value;
+    }
+
+    public void writeDataLine(String[] data){
+        try {
+            CSVWriter writer = new CSVWriter(new FileWriter(newFilePath, true),
+                CSVWriter.DEFAULT_SEPARATOR,
+                CSVWriter.NO_QUOTE_CHARACTER,
+                CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                CSVWriter.RFC4180_LINE_END);
+
+        
+            writer.writeNext(data);
+              
+            writer.close();
+
+        } catch (IOException e ) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void newCsvFile(){
+        try {
+            CSVWriter writer = new CSVWriter(new FileWriter(newFilePath,false));            
+            writer.close();
+
+        } catch (IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public Faltung generateRandomFaltung(){
+        String newFaltungString = "";
+
+        for(int i = 0; i < faltungSize-1 ; i++){
+            int newCarNumber = randomInBetween(0, 2);
+            String newChar;
+            if(newCarNumber == 0){ 
+                newChar = "l";
+            } else if ( newCarNumber == 1){
+                newChar = "g";
+            } else {
+                newChar = "r";
+            }
+            newFaltungString += newChar;
+        }
+        return new Faltung(newFaltungString, hydrophobString);
+    }
+
+    public void generateStartingGeneration(){
+        ArrayList<Faltung> newFaltungList = new ArrayList<>();
+        for(int i = 0; i < generationSize; i++){
+            newFaltungList.add(generateRandomFaltung());
+        }
+        generationList.add(new Generation(newFaltungList));
     }
 }
