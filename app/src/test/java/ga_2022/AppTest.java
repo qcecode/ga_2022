@@ -11,11 +11,4 @@ class AppTest {
         //App classUnderTest = new App();
         //assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
     }
-
-    @Test
-    void testWriteDataLine() {
-        App classUnderTest = new App();
-        String[] test = {"1","2"};
-        classUnderTest.writeDataLine(test);
-    }
 }

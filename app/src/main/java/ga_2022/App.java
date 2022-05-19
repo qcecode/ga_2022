@@ -14,14 +14,21 @@ import com.opencsv.CSVWriter;
 
 public class App {
 
-        public static String outputFolderPath = "C:\\Users\\henri\\Documents\\ga\\ga_2022\\app\\generated";
-        public static String csvName = "data.csv";
+        public static final String outputFolderPath = "C:\\Users\\henri\\Documents\\ga\\ga_2022\\app\\generated";
+        public static final String csvName = "data.csv";
 
-        public static String hydrophobString = Examples.SEQ36;
-        public static int faltungSize = hydrophobString.length(); // Anzahl der Knoten 
-        public static int generationSize = 1000;
-        public static int maxGenerationNumber = 100;
+        public static final String hydrophobString = Examples.SEQ50;
+        public static final int faltungSize = hydrophobString.length(); // Anzahl der Knoten 
+        public static final int generationSize = 200;
+        public static final int maxGenerationNumber = 10000;
 
+        public static final boolean turnamentSelection = true;
+        public static final boolean mutationOn = true;
+        public static final boolean crossOverOn = true;
+        public static final int turnamentSize = 4;
+
+        public static int crossOverRate = 2; 
+        public static int mutationRate = 10; // eg 3 = 3%
         private ArrayList<Generation> generationList;
         private int genCnt = 0;
         private Faltung maxFitness;
@@ -29,21 +36,25 @@ public class App {
         App app = new App();
         GraphicOutput ga = new GraphicOutput();
         app.newCsvFile();
-        app.generationList = new ArrayList<>();
         app.generateStartingGeneration();
         for(int i = 1; i < maxGenerationNumber; i++){
             //System.out.println("avg Fitness " + app.generationList.get(app.genCnt).getAvgFitness());
             app.nextGeneration();
         }
-        ga.generateImage( app.generationList.get(app.generationList.size()-1).getFaltungList().get(0), outputFolderPath);
+        ga.generateImage( app.maxFitness, outputFolderPath);
 
         System.out.println("max Fitness: " + app.maxFitness.getFitness());
     }
 
-    public void punktMutation(Faltung f){
+    public App() {
+        generationList = new ArrayList<>();
+    }
+
+    public Faltung punktMutation(Faltung f){
         int changePos = randomInBetween(1, f.size()-1); 
         int newCarNumber = randomInBetween(0, 2);
         String newChar;
+        Faltung newFaltung;
         if(newCarNumber == 0){ 
             newChar = "l";
         } else if ( newCarNumber == 1){
@@ -51,12 +62,12 @@ public class App {
         } else {
             newChar = "r";
         }
-
-        f.faltung = f.faltung.substring(0,changePos-1) + newChar +f.faltung.substring(changePos);
+        newFaltung = new Faltung(f.faltung.substring(0,changePos-1) + newChar +f.faltung.substring(changePos), hydrophobString);
+        return newFaltung;
     }
 
     public Faltung onePointCrossover(Faltung f0, Faltung f1){
-        int changePos = randomInBetween(0, f0.size());
+        int changePos = randomInBetween(0, f0.size()-1);
         String newFaltungString = f0.faltung.substring(0,changePos) + f1.faltung.substring(changePos);
         Faltung newFaltung = new Faltung(newFaltungString, f0.hydrophob);
         //System.out.println("changePos: " + changePos);
@@ -66,8 +77,33 @@ public class App {
 
     public void nextGeneration(){
         ArrayList<Faltung> newFaltungList = new ArrayList<>();
-        for(int i = 0; i < generationSize; i++){
-            newFaltungList.add(new Faltung(fitnessProportionateSelection(generationList.get(genCnt).getFaltungList())));
+        if(!turnamentSelection){
+            for(int i = 0; i < generationSize; i++){
+                newFaltungList.add(new Faltung(fitnessProportionateSelection(generationList.get(genCnt).getFaltungList())));
+            }
+        } else if (turnamentSelection) {
+            //System.out.println("turnament Selection");
+            for(int i = 0; i < generationSize; i++){
+                newFaltungList.add(new Faltung(turnamentSelection(generationList.get(genCnt).getFaltungList())));
+            }
+        }if(mutationOn){
+            //System.out.println("lets Mutate");
+            for(int i = 0; i < generationSize; i++){
+                if(mutationRate >= randomInBetween(0, 100)){
+                    Faltung newFaltung = punktMutation(newFaltungList.get(i));
+                    newFaltungList.set(i, newFaltung );
+                }
+            }  
+        }
+        if(crossOverOn){
+            for(int i = 0; i < generationSize; i++){
+                if(crossOverRate >= randomInBetween(0, 100)){
+                    Faltung newFaltung = onePointCrossover(
+                        newFaltungList.get(randomInBetween(0, generationSize -1)), 
+                        newFaltungList.get(randomInBetween(0, generationSize -1)));
+                    newFaltungList.set(i, newFaltung );
+                }
+            }  
         }
         generationList.add(new Generation(newFaltungList));
         genCnt++;
@@ -103,6 +139,19 @@ public class App {
         //System.out.println("cumulativeFitnesses " + cumulativeFitnesses[population.size()-1]);
         selected = population.get(index);
         return selected;
+    }
+
+    public Faltung turnamentSelection(ArrayList<Faltung> population){
+        int randomIndex = randomInBetween(0, generationSize-1);
+        Faltung turnamentWinner = population.get(randomIndex);
+        
+        for (int i = 0 ; i < turnamentSize-1; i++){
+            randomIndex = randomInBetween(0, generationSize-1);
+            if(turnamentWinner.getFitness() < population.get(randomIndex).getFitness()){
+                turnamentWinner = population.get(randomIndex);
+            }
+        }
+        return turnamentWinner;
     }
 
     public int randomInBetween(int min, int max){

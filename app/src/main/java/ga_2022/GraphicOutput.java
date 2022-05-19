@@ -15,9 +15,9 @@ import javax.imageio.ImageIO;
 public class GraphicOutput {
 
     public void generateImage(Faltung faltung, String folderPath){
-    int height = 2160 ;
-    int width = 4096 ;
-    int cellSize = 74;
+    int height = 4320 ;
+    int width = 7680 ;
+    int cellSize = 100;
     int boxDistance = cellSize+cellSize/2;
 
     int xPos = width/2;
@@ -29,7 +29,7 @@ public class GraphicOutput {
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     Graphics2D g2 = image.createGraphics();
 
-    Font font = new Font("Serif", Font.PLAIN, 30);
+    Font font = new Font("Serif", Font.PLAIN, 40);
     g2.setFont(font);
     FontMetrics metrics = g2.getFontMetrics();
     int ascent = metrics.getAscent();
