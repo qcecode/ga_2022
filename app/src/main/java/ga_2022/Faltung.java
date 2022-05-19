@@ -171,7 +171,7 @@ public class Faltung {
         //System.out.println("overlaps: "+ overlap);
         //System.out.println("bonds: " +bonds);
         this.fitness = ((bonds)+0.1)/((overlap)+1);
-        System.out.println("fitness: " +fitness);
+        //System.out.println("fitness: " +fitness);
     }
 
     private char getDirection(char lastDirketion, char heading){

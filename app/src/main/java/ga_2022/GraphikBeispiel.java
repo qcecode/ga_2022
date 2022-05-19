@@ -52,7 +52,7 @@ public class GraphikBeispiel {
 
 		g2.drawString(label, 50 + cellSize/2 - labelWidth/2 , 50 + cellSize/2 + ascent/2);
 		
-		String folder = "C:\\Users\\henri\\Documents\\ga\\ga_2022\\app\\build\\tmp";
+		String folder = "C:\\Users\\henri\\Documents\\ga\\ga_2022\\app\\generated";
 		String filename = "bild.png";
 		if (new File(folder).exists() == false) new File(folder).mkdirs();
 		

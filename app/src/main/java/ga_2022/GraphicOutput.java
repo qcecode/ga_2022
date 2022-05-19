@@ -4,26 +4,19 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.PrimitiveIterator;
 
 import javax.imageio.ImageIO;
 
 public class GraphicOutput {
-    //public static String faltungString = "ggggggg";
-    public static String faltungString = "gllrlll";
-    public static String hydrophobString = "10110001";
 
-    public void generateImage(Faltung faltung){
-    int height = 1080;
-    int width = 1920;
+    public void generateImage(Faltung faltung, String folderPath){
+    int height = 2160 ;
+    int width = 4096 ;
     int cellSize = 74;
     int boxDistance = cellSize+cellSize/2;
 
@@ -112,12 +105,12 @@ public class GraphicOutput {
     g2.drawString("Bonds: " + Integer.toString(faltung.getBondSet().size()), 50, 100);
     g2.drawString("Fitness: " + Double.toString(faltung.getFitness()), 50, 150);
 
-    String folder = "C:\\Users\\henri\\Documents\\ga\\ga_2022\\app\\build\\tmp";
     String filename = "bild.png";
-    if (new File(folder).exists() == false) new File(folder).mkdirs();
+
+    if (new File(folderPath).exists() == false) new File(folderPath).mkdirs();
     
     try {
-        ImageIO.write(image, "png", new File(folder + File.separator + filename));
+        ImageIO.write(image, "png", new File(folderPath + File.separator + filename));
     } catch (IOException e) {
         e.printStackTrace();
         System.exit(0);

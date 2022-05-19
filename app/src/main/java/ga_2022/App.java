@@ -3,6 +3,7 @@
  */
 package ga_2022;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,20 +13,18 @@ import java.util.Random;
 import com.opencsv.CSVWriter;
 
 public class App {
-        //public static String faltungString = "gllrrgr"; //1
-        public static String faltungString = "gllrlll";
-        //public static String hydrophobString = "10110001"; // 8
-        //public static String hydrophobString = "101100010110"; //12
-        public static String hydrophobString = "1011011101011011"; //16
-        public static String filePath = "src/main/resources/data.csv";
-        public static String newFilePath = "C:\\Users\\henri\\Documents\\ga\\ga_2022\\app\\src\\main\\resources\\data.csv";
 
-        public static int faltungSize = 16; // Anzahl der Knoten 
-        public static int generationSize = 10000;
-        public static int maxGenerationNumber = 20;
+        public static String outputFolderPath = "C:\\Users\\henri\\Documents\\ga\\ga_2022\\app\\generated";
+        public static String csvName = "data.csv";
+
+        public static String hydrophobString = Examples.SEQ36;
+        public static int faltungSize = hydrophobString.length(); // Anzahl der Knoten 
+        public static int generationSize = 1000;
+        public static int maxGenerationNumber = 100;
 
         private ArrayList<Generation> generationList;
         private int genCnt = 0;
+        private Faltung maxFitness;
     public static void main(String[] args) throws Exception {
         App app = new App();
         GraphicOutput ga = new GraphicOutput();
@@ -33,18 +32,12 @@ public class App {
         app.generationList = new ArrayList<>();
         app.generateStartingGeneration();
         for(int i = 1; i < maxGenerationNumber; i++){
-            System.out.println("avg Fitness " + app.generationList.get(app.genCnt).getAvgFitness());
+            //System.out.println("avg Fitness " + app.generationList.get(app.genCnt).getAvgFitness());
             app.nextGeneration();
         }
-        ga.generateImage( app.generationList.get(app.generationList.size()-1).getFaltungList().get(0));
+        ga.generateImage( app.generationList.get(app.generationList.size()-1).getFaltungList().get(0), outputFolderPath);
 
-
-        
-        //app.punktMutation(f);
-        //app.onePointCrossover(f, f1);
-        /*f.fitness();
-        GraphicOutput Ga = new GraphicOutput();
-        Ga.generateImage(f);*/
+        System.out.println("max Fitness: " + app.maxFitness.getFitness());
     }
 
     public void punktMutation(Faltung f){
@@ -78,7 +71,12 @@ public class App {
         }
         generationList.add(new Generation(newFaltungList));
         genCnt++;
+        if(maxFitness.getFitness() < generationList.get(genCnt).getMaxFitness().getFitness()){
+            maxFitness = generationList.get(genCnt).getMaxFitness();
+        }
+        updateCsv();
     }
+
     public Faltung fitnessProportionateSelection(ArrayList<Faltung> population){
 
         Random rng = new Random();
@@ -116,13 +114,13 @@ public class App {
 
     public void writeDataLine(String[] data){
         try {
-            CSVWriter writer = new CSVWriter(new FileWriter(newFilePath, true),
+            
+            CSVWriter writer = new CSVWriter(new FileWriter(outputFolderPath + File.separator + csvName, true),
                 CSVWriter.DEFAULT_SEPARATOR,
                 CSVWriter.NO_QUOTE_CHARACTER,
                 CSVWriter.DEFAULT_ESCAPE_CHARACTER,
                 CSVWriter.RFC4180_LINE_END);
 
-        
             writer.writeNext(data);
               
             writer.close();
@@ -133,8 +131,15 @@ public class App {
     }
     
     public void newCsvFile(){
+        String[] header = {"Gen. Nr.", "avg. fitness current Gen", "max. fitness current Gen", "max. fitness all Gen", "max. Bonds best candidate", "overlap best candidate"};
         try {
-            CSVWriter writer = new CSVWriter(new FileWriter(newFilePath,false));            
+            CSVWriter writer = new CSVWriter(new FileWriter(outputFolderPath + File.separator + csvName, false),
+            CSVWriter.DEFAULT_SEPARATOR,
+            CSVWriter.NO_QUOTE_CHARACTER,
+            CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+            CSVWriter.RFC4180_LINE_END);
+            
+            writer.writeNext(header);
             writer.close();
 
         } catch (IOException e ) {
@@ -159,12 +164,27 @@ public class App {
         }
         return new Faltung(newFaltungString, hydrophobString);
     }
-
+    
     public void generateStartingGeneration(){
         ArrayList<Faltung> newFaltungList = new ArrayList<>();
         for(int i = 0; i < generationSize; i++){
             newFaltungList.add(generateRandomFaltung());
         }
         generationList.add(new Generation(newFaltungList));
+        maxFitness = generationList.get(genCnt).getMaxFitness();
+        updateCsv();
+    }
+
+    public void updateCsv(){
+        ArrayList<String> newCsv = new ArrayList<>();
+        newCsv.add(Integer.toString(genCnt));
+        newCsv.add(Double.toString(generationList.get(genCnt).getAvgFitness()));
+        newCsv.add(Double.toString(generationList.get(genCnt).getMaxFitness().getFitness()));
+        newCsv.add(Double.toString(maxFitness.getFitness()));
+        newCsv.add(Integer.toString(maxFitness.getBondSet().size()));
+        newCsv.add(Integer.toString(maxFitness.getOverlapList().size()));
+        
+        String[] csvString = newCsv.toArray(new String[0]);
+        writeDataLine(csvString);
     }
 }
