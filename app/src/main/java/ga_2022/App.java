@@ -19,16 +19,17 @@ public class App {
 
         public static final String hydrophobString = Examples.SEQ50;
         public static final int faltungSize = hydrophobString.length(); // Anzahl der Knoten 
-        public static final int generationSize = 200;
-        public static final int maxGenerationNumber = 10000;
+        public static final int generationSize = 250;
+        public static final int maxGenerationNumber = 2500;
 
-        public static final boolean turnamentSelection = true;
+        public static final boolean dynamicMutation = true;
+        public static final boolean turnamentSelection = false;
         public static final boolean mutationOn = true;
         public static final boolean crossOverOn = true;
-        public static final int turnamentSize = 4;
+        public static final int turnamentSize = 25;
 
-        public static int crossOverRate = 2; 
-        public static int mutationRate = 10; // eg 3 = 3%
+        public static int mutationRate = 10; // eg 30 = 3 % 
+        public static int crossOverRate = 250; 
         private ArrayList<Generation> generationList;
         private int genCnt = 0;
         private Faltung maxFitness;
@@ -41,9 +42,8 @@ public class App {
             //System.out.println("avg Fitness " + app.generationList.get(app.genCnt).getAvgFitness());
             app.nextGeneration();
         }
-        ga.generateImage( app.maxFitness, outputFolderPath);
-
         System.out.println("max Fitness: " + app.maxFitness.getFitness());
+        ga.generateImage( app.maxFitness, outputFolderPath);
     }
 
     public App() {
@@ -77,6 +77,7 @@ public class App {
 
     public void nextGeneration(){
         ArrayList<Faltung> newFaltungList = new ArrayList<>();
+        Generation newGeneration;
         if(!turnamentSelection){
             for(int i = 0; i < generationSize; i++){
                 newFaltungList.add(new Faltung(fitnessProportionateSelection(generationList.get(genCnt).getFaltungList())));
@@ -89,7 +90,7 @@ public class App {
         }if(mutationOn){
             //System.out.println("lets Mutate");
             for(int i = 0; i < generationSize; i++){
-                if(mutationRate >= randomInBetween(0, 100)){
+                if(mutationRate >= randomInBetween(0, 1000)){
                     Faltung newFaltung = punktMutation(newFaltungList.get(i));
                     newFaltungList.set(i, newFaltung );
                 }
@@ -97,7 +98,7 @@ public class App {
         }
         if(crossOverOn){
             for(int i = 0; i < generationSize; i++){
-                if(crossOverRate >= randomInBetween(0, 100)){
+                if(crossOverRate >= randomInBetween(0, 1000)){
                     Faltung newFaltung = onePointCrossover(
                         newFaltungList.get(randomInBetween(0, generationSize -1)), 
                         newFaltungList.get(randomInBetween(0, generationSize -1)));
@@ -105,7 +106,16 @@ public class App {
                 }
             }  
         }
-        generationList.add(new Generation(newFaltungList));
+        newGeneration = new Generation(newFaltungList);
+        if(dynamicMutation){
+            if(newGeneration.getMaxFitness().getFitness() == generationList.get(genCnt).getMaxFitness().getFitness()){
+                if(mutationRate < 500)
+                mutationRate += 1;
+            } else {
+                mutationRate = 1;
+            }
+        }
+        generationList.add(newGeneration);
         genCnt++;
         if(maxFitness.getFitness() < generationList.get(genCnt).getMaxFitness().getFitness()){
             maxFitness = generationList.get(genCnt).getMaxFitness();
@@ -180,7 +190,7 @@ public class App {
     }
     
     public void newCsvFile(){
-        String[] header = {"Gen. Nr.", "avg. fitness current Gen", "max. fitness current Gen", "max. fitness all Gen", "max. Bonds best candidate", "overlap best candidate"};
+        String[] header = {"Gen. Nr.", "avg. fitness current Gen", "max. fitness current Gen", "Mutationrate :", "max. fitness all Gen", "max. Bonds best candidate", "overlap best candidate"};
         try {
             CSVWriter writer = new CSVWriter(new FileWriter(outputFolderPath + File.separator + csvName, false),
             CSVWriter.DEFAULT_SEPARATOR,
@@ -229,6 +239,7 @@ public class App {
         newCsv.add(Integer.toString(genCnt));
         newCsv.add(Double.toString(generationList.get(genCnt).getAvgFitness()));
         newCsv.add(Double.toString(generationList.get(genCnt).getMaxFitness().getFitness()));
+        newCsv.add(Integer.toString(mutationRate));
         newCsv.add(Double.toString(maxFitness.getFitness()));
         newCsv.add(Integer.toString(maxFitness.getBondSet().size()));
         newCsv.add(Integer.toString(maxFitness.getOverlapList().size()));
